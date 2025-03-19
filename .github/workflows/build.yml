@@ -25,7 +25,7 @@ jobs:
         pip install pyinstaller
     
     - name: Build with PyInstaller
-      run: pyinstaller mainn.spec
+      run: pyinstaller -y mainn.spec
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
