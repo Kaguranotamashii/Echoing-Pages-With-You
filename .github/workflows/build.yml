@@ -34,14 +34,38 @@ jobs:
     - name: Zip Release Files
       run: Compress-Archive -Path dist/mainn/* -DestinationPath JustMonika-Windows.zip
 
+    - name: Get Previous tag
+      id: previoustag
+      uses: WyriHaximus/github-action-get-previous-tag@v1
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Calculate new version
+      id: version
+      run: |
+        if [[ "${{ steps.previoustag.outputs.tag }}" == "" ]]; then
+          echo "::set-output name=new_tag::v1.00"
+        else
+          current_version=$(echo "${{ steps.previoustag.outputs.tag }}" | sed 's/v//')
+          if [[ "${{ github.event.head_commit.message }}" == *"[major]"* ]]; then
+            major_version=$(echo $current_version | cut -d. -f1)
+            new_version=$((major_version + 1)).00
+          else
+            version_number=$(echo $current_version | awk -F. '{print $1"."$2+0.01}')
+            new_version=$version_number
+          fi
+          echo "::set-output name=new_tag::v$new_version"
+        fi
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ github.ref }}
-        release_name: Release v${{ github.ref }}
+        tag_name: ${{ steps.version.outputs.new_tag }}
+        release_name: Release ${{ steps.version.outputs.new_tag }}
         draft: false
         prerelease: false
     
