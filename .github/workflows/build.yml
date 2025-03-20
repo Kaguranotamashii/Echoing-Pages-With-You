@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
+    
 jobs:
   build:
     runs-on: windows-latest
@@ -55,4 +56,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./JustMonika-Windows.zip
         asset_name: JustMonika-Windows.zip
-        asset_content_type: application/zip
+        asset_content_type: application/zip 
