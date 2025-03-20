@@ -43,20 +43,22 @@ jobs:
 
     - name: Calculate new version
       id: version
+      shell: pwsh
       run: |
-        if [[ "${{ steps.previoustag.outputs.tag }}" == "" ]]; then
+        $previousTag = "${{ steps.previoustag.outputs.tag }}"
+        if ($previousTag -eq "") {
           echo "::set-output name=new_tag::v1.00"
-        else
-          current_version=$(echo "${{ steps.previoustag.outputs.tag }}" | sed 's/v//')
-          if [[ "${{ github.event.head_commit.message }}" == *"[major]"* ]]; then
-            major_version=$(echo $current_version | cut -d. -f1)
-            new_version=$((major_version + 1)).00
-          else
-            version_number=$(echo $current_version | awk -F. '{print $1"."$2+0.01}')
-            new_version=$version_number
-          fi
-          echo "::set-output name=new_tag::v$new_version"
-        fi
+        } else {
+          $currentVersion = $previousTag -replace 'v',''          
+          if ("${{ github.event.head_commit.message }}" -match "\[major\]") {
+            $majorVersion = [int]($currentVersion -split '\.')[0]
+            $newVersion = "$($majorVersion + 1).00"
+          } else {
+            $versionNumber = [double]$currentVersion
+            $newVersion = [string]($versionNumber + 0.01)
+          }
+          echo "::set-output name=new_tag::v$newVersion"
+        }
 
     - name: Create Release
       id: create_release
